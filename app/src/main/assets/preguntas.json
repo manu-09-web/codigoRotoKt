@@ -1,0 +1,82 @@
+[
+  {
+    "id": "seed-01",
+    "enunciado": "¿Qué imprime este código?",
+    "codigo": "val lista = listOf(1, 2, 3)\nprintln(lista.map { it * 2 }.sum())",
+    "opciones": ["6", "12", "[2, 4, 6]", "Error de compilación"],
+    "respuestaCorrecta": "12",
+    "tema": "COLECCIONES",
+    "dificultad": "FACIL",
+    "explicacion": "map duplica cada número ([2, 4, 6]) y sum() los suma: 12."
+  },
+  {
+    "id": "seed-02",
+    "enunciado": "¿Qué imprime este código?",
+    "codigo": "val nums = listOf(1, 2, 3, 4, 5)\nprintln(nums.filter { it > 2 }.map { it * 10 })",
+    "opciones": ["[30, 40, 50]", "[3, 4, 5]", "120", "[10, 20, 30, 40, 50]"],
+    "respuestaCorrecta": "[30, 40, 50]",
+    "tema": "COLECCIONES",
+    "dificultad": "MEDIA",
+    "explicacion": "filter deja [3, 4, 5] y map multiplica cada uno por 10."
+  },
+  {
+    "id": "seed-03",
+    "enunciado": "¿Qué imprime este código?",
+    "codigo": "val nombre: String? = null\nprintln(nombre?.length ?: 0)",
+    "opciones": ["null", "0", "NullPointerException", "Error de compilación"],
+    "respuestaCorrecta": "0",
+    "tema": "NULOS",
+    "dificultad": "FACIL",
+    "explicacion": "?. devuelve null y el operador Elvis ?: lo reemplaza por 0."
+  },
+  {
+    "id": "seed-04",
+    "enunciado": "¿Qué imprime este código?",
+    "codigo": "val texto: String? = \"Hola\"\nprintln(texto?.uppercase())",
+    "opciones": ["Hola", "HOLA", "null", "Error de compilación"],
+    "respuestaCorrecta": "HOLA",
+    "tema": "NULOS",
+    "dificultad": "MEDIA",
+    "explicacion": "texto no es null, así que ?. sí llama a uppercase()."
+  },
+  {
+    "id": "seed-05",
+    "enunciado": "¿Qué imprime este código?",
+    "codigo": "var x = 5\nx += 3\nprintln(x)",
+    "opciones": ["5", "8", "53", "Error de compilación"],
+    "respuestaCorrecta": "8",
+    "tema": "VARIABLES",
+    "dificultad": "FACIL",
+    "explicacion": "x es var, así que se puede cambiar: 5 + 3 = 8."
+  },
+  {
+    "id": "seed-06",
+    "enunciado": "¿Qué pasa con este código?",
+    "codigo": "val nombre = \"Ana\"\nnombre = \"Luis\"\nprintln(nombre)",
+    "opciones": ["Imprime Ana", "Imprime Luis", "Error de compilación", "Imprime null"],
+    "respuestaCorrecta": "Error de compilación",
+    "tema": "VARIABLES",
+    "dificultad": "MEDIA",
+    "explicacion": "Una variable val no se puede volver a asignar."
+  },
+  {
+    "id": "seed-07",
+    "enunciado": "¿Qué imprime este código?",
+    "codigo": "for (i in 1..3) {\n    print(i)\n}",
+    "opciones": ["123", "12", "0123", "1 2 3"],
+    "respuestaCorrecta": "123",
+    "tema": "CONTROL_FLUJO",
+    "dificultad": "FACIL",
+    "explicacion": "1..3 incluye el 3 y print no agrega espacios ni saltos de línea."
+  },
+  {
+    "id": "seed-08",
+    "enunciado": "¿Dónde está el error?",
+    "codigo": "fun suma(a: Int): Int {\n    return a + b\n}",
+    "opciones": ["Falta una llave", "b no está declarada", "return no se usa en funciones", "Int no es un tipo válido"],
+    "respuestaCorrecta": "b no está declarada",
+    "tema": "FUNCIONES",
+    "dificultad": "MEDIA",
+    "explicacion": "La función solo recibe a; la variable b no existe."
+  }
+]
