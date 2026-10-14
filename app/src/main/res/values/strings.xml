@@ -1,3 +1,15 @@
 <resources>
     <string name="app_name">Código Roto</string>
+
+    <!-- Juego -->
+    <string name="juego_progreso">Pregunta %1$d de %2$d</string>
+    <string name="juego_racha_puntos">Racha %1$d · %2$d pts</string>
+    <string name="juego_correcto">¡Correcto!</string>
+    <string name="juego_incorrecto">Incorrecto</string>
+    <string name="juego_siguiente">Siguiente</string>
+
+    <!-- Fin de partida -->
+    <string name="fin_titulo">Partida terminada</string>
+    <string name="fin_resumen">%1$d de %2$d correctas · %3$d puntos</string>
+    <string name="fin_jugar_de_nuevo">Jugar de nuevo</string>
 </resources>
