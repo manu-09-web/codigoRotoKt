@@ -1,6 +1,29 @@
 <resources>
     <string name="app_name">Código Roto</string>
 
+    <!-- Inicio -->
+    <string name="inicio_subtitulo">Pon a prueba tus conocimientos de Kotlin</string>
+    <string name="inicio_temas">Elige tus temas</string>
+    <string name="inicio_todos">Todos</string>
+    <string name="inicio_dificultad">Dificultad</string>
+    <string name="inicio_preguntas">Preguntas</string>
+    <string name="inicio_disponibles">%1$d disponibles con estos filtros</string>
+    <string name="inicio_sin_preguntas">No hay preguntas con estos filtros</string>
+    <string name="inicio_comenzar">Comenzar partida</string>
+
+    <!-- Temas -->
+    <string name="tema_variables">Variables</string>
+    <string name="tema_nulos">Nulos</string>
+    <string name="tema_colecciones">Colecciones</string>
+    <string name="tema_control_flujo">Control de flujo</string>
+    <string name="tema_funciones">Funciones</string>
+
+    <!-- Dificultades -->
+    <string name="dificultad_todas">Todas</string>
+    <string name="dificultad_facil">Fácil</string>
+    <string name="dificultad_media">Media</string>
+    <string name="dificultad_dificil">Difícil</string>
+
     <!-- Juego -->
     <string name="juego_progreso">Pregunta %1$d de %2$d</string>
     <string name="juego_racha_puntos">Racha %1$d · %2$d pts</string>
@@ -11,5 +34,5 @@
     <!-- Fin de partida -->
     <string name="fin_titulo">Partida terminada</string>
     <string name="fin_resumen">%1$d de %2$d correctas · %3$d puntos</string>
-    <string name="fin_jugar_de_nuevo">Jugar de nuevo</string>
+    <string name="fin_volver_inicio">Volver al inicio</string>
 </resources>

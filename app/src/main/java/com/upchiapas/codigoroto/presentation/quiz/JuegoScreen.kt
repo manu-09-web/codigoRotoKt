@@ -2,7 +2,6 @@ package com.upchiapas.codigoroto.presentation.quiz
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,19 +12,15 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.upchiapas.codigoroto.R
 import com.upchiapas.codigoroto.data.model.Pregunta
 import com.upchiapas.codigoroto.presentation.components.CodigoCard
@@ -35,43 +30,19 @@ import com.upchiapas.codigoroto.ui.theme.RojoIncorrectoFondo
 import com.upchiapas.codigoroto.ui.theme.VerdeCorrecto
 import com.upchiapas.codigoroto.ui.theme.VerdeCorrectoFondo
 
-/** Conecta el ViewModel con la pantalla: lee el estado y pasa los eventos. */
-@Composable
-fun JuegoRoute(
-    modifier: Modifier = Modifier,
-    viewModel: QuizViewModel = viewModel(factory = QuizViewModel.Factory)
-) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    JuegoScreen(
-        uiState = uiState,
-        onOpcionSeleccionada = viewModel::onOpcionSeleccionada,
-        onSiguiente = viewModel::onSiguiente,
-        onJugarDeNuevo = viewModel::onJugarDeNuevo,
-        modifier = modifier
-    )
-}
-
 /** Pantalla sin estado propio: solo dibuja lo que recibe y avisa con lambdas. */
 @Composable
 fun JuegoScreen(
     uiState: QuizUiState,
     onOpcionSeleccionada: (String) -> Unit,
     onSiguiente: () -> Unit,
-    onJugarDeNuevo: () -> Unit,
+    onVolverAlInicio: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val pregunta = uiState.preguntaActual
     when {
-        uiState.fase == FaseQuiz.Cargando -> Cargando(modifier)
-        uiState.fase == FaseQuiz.Finalizada -> FinDePartida(uiState, onJugarDeNuevo, modifier)
+        uiState.fase == FaseQuiz.Finalizada -> FinDePartida(uiState, onVolverAlInicio, modifier)
         pregunta != null -> PreguntaActual(uiState, pregunta, onOpcionSeleccionada, onSiguiente, modifier)
-    }
-}
-
-@Composable
-private fun Cargando(modifier: Modifier) {
-    Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator()
     }
 }
 
@@ -177,7 +148,7 @@ private fun Retroalimentacion(
 @Composable
 private fun FinDePartida(
     uiState: QuizUiState,
-    onJugarDeNuevo: () -> Unit,
+    onVolverAlInicio: () -> Unit,
     modifier: Modifier
 ) {
     Column(
@@ -196,8 +167,8 @@ private fun FinDePartida(
             text = stringResource(R.string.fin_resumen, uiState.aciertos, uiState.totalPreguntas, uiState.puntaje),
             style = MaterialTheme.typography.titleMedium
         )
-        Button(onClick = onJugarDeNuevo) {
-            Text(text = stringResource(R.string.fin_jugar_de_nuevo))
+        Button(onClick = onVolverAlInicio) {
+            Text(text = stringResource(R.string.fin_volver_inicio))
         }
     }
 }

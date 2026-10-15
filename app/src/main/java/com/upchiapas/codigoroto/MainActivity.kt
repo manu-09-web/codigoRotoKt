@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
-import com.upchiapas.codigoroto.presentation.quiz.JuegoRoute
+import com.upchiapas.codigoroto.presentation.quiz.QuizRoute
 import com.upchiapas.codigoroto.ui.theme.CodigoRotoTheme
 
 class MainActivity : ComponentActivity() {
@@ -18,7 +18,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             CodigoRotoTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    JuegoRoute(modifier = Modifier.padding(innerPadding))
+                    QuizRoute(modifier = Modifier.padding(innerPadding))
                 }
             }
         }

@@ -6,7 +6,9 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.upchiapas.codigoroto.CodigoRotoApp
+import com.upchiapas.codigoroto.data.model.Dificultad
 import com.upchiapas.codigoroto.data.model.Pregunta
+import com.upchiapas.codigoroto.data.model.Tema
 import com.upchiapas.codigoroto.data.repository.QuizRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,8 +24,60 @@ class QuizViewModel(
     val uiState: StateFlow<QuizUiState> = _uiState.asStateFlow()
 
     init {
-        iniciarPartida()
+        cargarBanco()
     }
+
+    // ---------- Inicio (fase Configurando) ----------
+
+    fun onTemaSeleccionado(tema: Tema) {
+        _uiState.update {
+            val temas = it.config.temasSeleccionados
+            val nuevos = if (tema in temas) temas - tema else temas + tema
+            it.copy(config = recalcularConfig(it.bancoPreguntas, it.config.copy(temasSeleccionados = nuevos)))
+        }
+    }
+
+    fun onTodosLosTemas() {
+        _uiState.update {
+            it.copy(config = recalcularConfig(it.bancoPreguntas, it.config.copy(temasSeleccionados = emptySet())))
+        }
+    }
+
+    fun onDificultadSeleccionada(dificultad: Dificultad?) {
+        _uiState.update {
+            it.copy(config = recalcularConfig(it.bancoPreguntas, it.config.copy(dificultad = dificultad)))
+        }
+    }
+
+    fun onNumeroPreguntasCambiado(numero: Int) {
+        _uiState.update {
+            val config = it.config
+            it.copy(config = config.copy(numeroPreguntas = numero.coerceIn(config.minimoPreguntas, config.maximoDisponible)))
+        }
+    }
+
+    fun onIniciarPartida() {
+        val estado = _uiState.value
+        if (!estado.config.puedeIniciar) return
+
+        val preguntas = filtrar(estado.bancoPreguntas, estado.config)
+            .shuffled()
+            .take(estado.config.numeroPreguntas)
+
+        _uiState.update {
+            it.copy(
+                fase = FaseQuiz.Respondiendo,
+                preguntas = preguntas,
+                indiceActual = 0,
+                opciones = revolverOpciones(preguntas.first()),
+                puntaje = 0,
+                racha = 0,
+                aciertos = 0
+            )
+        }
+    }
+
+    // ---------- Juego ----------
 
     fun onOpcionSeleccionada(texto: String) {
         val estado = _uiState.value
@@ -67,23 +121,42 @@ class QuizViewModel(
         }
     }
 
-    fun onJugarDeNuevo() {
-        iniciarPartida()
+    fun onVolverAlInicio() {
+        _uiState.update { it.copy(fase = FaseQuiz.Configurando) }
     }
 
-    private fun iniciarPartida() {
-        _uiState.value = QuizUiState()
+    // ---------- Lógica interna ----------
+
+    private fun cargarBanco() {
         viewModelScope.launch {
-            val preguntas = repository.obtenerPreguntas().shuffled()
+            val banco = repository.obtenerPreguntas()
             _uiState.update {
                 it.copy(
-                    fase = FaseQuiz.Respondiendo,
-                    preguntas = preguntas,
-                    opciones = preguntas.firstOrNull()?.let(::revolverOpciones).orEmpty()
+                    fase = FaseQuiz.Configurando,
+                    bancoPreguntas = banco,
+                    config = recalcularConfig(banco, ConfigPartida(numeroPreguntas = PREGUNTAS_POR_DEFECTO))
                 )
             }
         }
     }
+
+    /** Ajusta el mínimo, el máximo y el número elegido según los filtros actuales. */
+    private fun recalcularConfig(banco: List<Pregunta>, config: ConfigPartida): ConfigPartida {
+        val disponibles = filtrar(banco, config).size
+        val maximo = minOf(disponibles, MAXIMO_PREGUNTAS)
+        val minimo = minOf(MINIMO_PREGUNTAS, maximo)
+        return config.copy(
+            minimoPreguntas = minimo,
+            maximoDisponible = maximo,
+            numeroPreguntas = config.numeroPreguntas.coerceIn(minimo, maximo)
+        )
+    }
+
+    private fun filtrar(banco: List<Pregunta>, config: ConfigPartida): List<Pregunta> =
+        banco.filter { pregunta ->
+            (config.temasSeleccionados.isEmpty() || pregunta.tema in config.temasSeleccionados) &&
+                (config.dificultad == null || pregunta.dificultad == config.dificultad)
+        }
 
     private fun revolverOpciones(pregunta: Pregunta): List<OpcionUi> =
         pregunta.opciones.shuffled().map { OpcionUi(texto = it) }
@@ -110,6 +183,9 @@ class QuizViewModel(
     companion object {
         private const val RACHA_MEDIA = 3
         private const val RACHA_DOBLE = 5
+        private const val MINIMO_PREGUNTAS = 5
+        private const val MAXIMO_PREGUNTAS = 20
+        private const val PREGUNTAS_POR_DEFECTO = 10
 
         val Factory = viewModelFactory {
             initializer {
