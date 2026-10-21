@@ -1,4 +1,4 @@
-package com.upchiapas.codigoroto.presentation.components
+package com.upchiapas.codigoroto.quiz.presentation.components
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -14,6 +14,10 @@ import androidx.compose.ui.unit.sp
 import com.upchiapas.codigoroto.ui.theme.CodigoFondo
 import com.upchiapas.codigoroto.ui.theme.CodigoTexto
 
+/**
+ * Tarjeta oscura que muestra el código de la pregunta con letra monoespaciada (como un editor).
+ * Componente reutilizable y stateless: solo recibe el texto del código.
+ */
 @Composable
 fun CodigoCard(
     codigo: String,

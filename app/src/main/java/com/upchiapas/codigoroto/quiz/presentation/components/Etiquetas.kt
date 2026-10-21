@@ -1,11 +1,14 @@
-package com.upchiapas.codigoroto.presentation.components
+package com.upchiapas.codigoroto.quiz.presentation.components
 
 import androidx.annotation.StringRes
 import com.upchiapas.codigoroto.R
-import com.upchiapas.codigoroto.data.model.Dificultad
-import com.upchiapas.codigoroto.data.model.Tema
+import com.upchiapas.codigoroto.quiz.data.model.Dificultad
+import com.upchiapas.codigoroto.quiz.data.model.Tema
 
-/** Texto que se muestra en pantalla para cada tema. */
+// Funciones de extensión: agregan una función nueva a Tema y Dificultad sin modificar esos archivos.
+// Están en presentation porque los textos son cosa de la pantalla; la capa data no sabe de strings.xml.
+
+/** Texto que se muestra en pantalla para cada tema (ej. Tema.NULOS -> "Nulos"). */
 @StringRes
 fun Tema.etiqueta(): Int = when (this) {
     Tema.VARIABLES -> R.string.tema_variables

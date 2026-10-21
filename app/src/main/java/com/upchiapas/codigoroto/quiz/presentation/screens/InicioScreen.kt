@@ -1,4 +1,4 @@
-package com.upchiapas.codigoroto.presentation.quiz
+package com.upchiapas.codigoroto.quiz.presentation.screens
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
@@ -24,11 +24,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.upchiapas.codigoroto.R
-import com.upchiapas.codigoroto.data.model.Dificultad
-import com.upchiapas.codigoroto.data.model.Tema
-import com.upchiapas.codigoroto.presentation.components.etiqueta
+import com.upchiapas.codigoroto.quiz.data.model.Dificultad
+import com.upchiapas.codigoroto.quiz.data.model.Tema
+import com.upchiapas.codigoroto.quiz.presentation.components.etiqueta
 import kotlin.math.roundToInt
 
+/**
+ * Pantalla de Inicio: el usuario elige temas, dificultad y número de preguntas.
+ * Es stateless: recibe la configuración ya calculada por el ViewModel y avisa cada cambio con lambdas.
+ */
 @Composable
 fun InicioScreen(
     config: ConfigPartida,
@@ -87,6 +91,7 @@ fun InicioScreen(
     }
 }
 
+/** Chips de temas (selección múltiple) y el botón "Todos". FlowRow acomoda los chips en varias filas. */
 @Composable
 private fun SelectorTemas(
     seleccionados: Set<Tema>,
@@ -105,6 +110,7 @@ private fun SelectorTemas(
             }
         }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            // Tema.entries es la lista de todos los valores del enum.
             Tema.entries.forEach { tema ->
                 FilterChip(
                     selected = tema in seleccionados,
@@ -116,6 +122,7 @@ private fun SelectorTemas(
     }
 }
 
+/** Chips de dificultad (selección única). "Todas" se representa con null. */
 @Composable
 private fun SelectorDificultad(
     seleccionada: Dificultad?,
@@ -140,6 +147,7 @@ private fun SelectorDificultad(
     }
 }
 
+/** Slider para elegir cuántas preguntas jugar. Se oculta si solo hay una cantidad posible. */
 @Composable
 private fun SelectorNumeroPreguntas(
     config: ConfigPartida,
@@ -160,6 +168,8 @@ private fun SelectorNumeroPreguntas(
             )
         }
         if (config.sliderHabilitado) {
+            // El Slider trabaja con Float; se redondea a Int antes de avisar al ViewModel.
+            // steps = número de puntos intermedios, para que solo se pueda elegir números enteros.
             Slider(
                 value = config.numeroPreguntas.toFloat(),
                 onValueChange = { onNumeroPreguntasCambiado(it.roundToInt()) },
@@ -179,6 +189,7 @@ private fun SelectorNumeroPreguntas(
     }
 }
 
+/** Título de cada sección. @StringRes indica que recibe el id de un texto de strings.xml. */
 @Composable
 private fun TituloSeccion(@StringRes textoRes: Int) {
     Text(

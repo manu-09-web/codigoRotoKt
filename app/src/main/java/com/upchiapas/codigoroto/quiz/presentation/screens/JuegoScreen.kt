@@ -1,4 +1,4 @@
-package com.upchiapas.codigoroto.presentation.quiz
+package com.upchiapas.codigoroto.quiz.presentation.screens
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
@@ -22,15 +22,19 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.upchiapas.codigoroto.R
-import com.upchiapas.codigoroto.data.model.Pregunta
-import com.upchiapas.codigoroto.presentation.components.CodigoCard
-import com.upchiapas.codigoroto.presentation.components.OpcionRespuesta
+import com.upchiapas.codigoroto.quiz.data.model.Pregunta
+import com.upchiapas.codigoroto.quiz.presentation.components.CodigoCard
+import com.upchiapas.codigoroto.quiz.presentation.components.OpcionRespuesta
 import com.upchiapas.codigoroto.ui.theme.RojoIncorrecto
 import com.upchiapas.codigoroto.ui.theme.RojoIncorrectoFondo
 import com.upchiapas.codigoroto.ui.theme.VerdeCorrecto
 import com.upchiapas.codigoroto.ui.theme.VerdeCorrectoFondo
 
-/** Pantalla sin estado propio: solo dibuja lo que recibe y avisa con lambdas. */
+/**
+ * Pantalla del juego. Es stateless (sin estado propio): solo dibuja lo que recibe en uiState
+ * y avisa al ViewModel con lambdas cuando el usuario toca algo (state hoisting).
+ * No decide nada: los colores, puntos y textos ya vienen calculados en el estado.
+ */
 @Composable
 fun JuegoScreen(
     uiState: QuizUiState,
@@ -46,6 +50,7 @@ fun JuegoScreen(
     }
 }
 
+/** Muestra la pregunta actual: encabezado, progreso, código, opciones y la retroalimentación. */
 @Composable
 private fun PreguntaActual(
     uiState: QuizUiState,
@@ -73,6 +78,7 @@ private fun PreguntaActual(
         )
         CodigoCard(codigo = pregunta.codigo)
 
+        // Una OpcionRespuesta por cada opción; al tocarla se avisa al ViewModel con su texto.
         uiState.opciones.forEach { opcion ->
             OpcionRespuesta(
                 texto = opcion.texto,
@@ -81,6 +87,8 @@ private fun PreguntaActual(
             )
         }
 
+        // as? intenta convertir la fase a Respondida; si es otra fase, queda null.
+        // AnimatedVisibility muestra la tarjeta con animación solo cuando ya se respondió.
         val respondida = uiState.fase as? FaseQuiz.Respondida
         AnimatedVisibility(visible = respondida != null) {
             if (respondida != null) {
@@ -94,6 +102,7 @@ private fun PreguntaActual(
     }
 }
 
+/** "Pregunta 3 de 10" a la izquierda y "Racha · puntos" a la derecha. Los textos salen de strings.xml. */
 @Composable
 private fun EncabezadoJuego(uiState: QuizUiState) {
     Row(
@@ -113,6 +122,7 @@ private fun EncabezadoJuego(uiState: QuizUiState) {
     }
 }
 
+/** Tarjeta verde o roja con "¡Correcto!"/"Incorrecto", la explicación y el botón Siguiente. */
 @Composable
 private fun Retroalimentacion(
     esCorrecta: Boolean,
@@ -145,6 +155,7 @@ private fun Retroalimentacion(
     }
 }
 
+/** Resumen al terminar la partida (después será la pantalla de Resultados). */
 @Composable
 private fun FinDePartida(
     uiState: QuizUiState,
