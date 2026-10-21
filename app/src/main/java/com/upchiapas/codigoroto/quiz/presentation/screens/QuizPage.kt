@@ -50,12 +50,20 @@ fun QuizPage(
             modifier = modifier
         )
 
-        // Respondiendo, Respondida y Finalizada se muestran en JuegoScreen.
-        else -> JuegoScreen(
+        FaseQuiz.Finalizada -> uiState.resultado?.let { resultado ->
+            ResultadosScreen(
+                resultado = resultado,
+                onJugarDeNuevo = viewModel::onJugarDeNuevo,
+                onVolverAlInicio = viewModel::onVolverAlInicio,
+                modifier = modifier
+            )
+        }
+
+        // Respondiendo y Respondida se muestran en JuegoScreen.
+        FaseQuiz.Respondiendo, is FaseQuiz.Respondida -> JuegoScreen(
             uiState = uiState,
             onOpcionSeleccionada = viewModel::onOpcionSeleccionada,
             onSiguiente = viewModel::onSiguiente,
-            onVolverAlInicio = viewModel::onVolverAlInicio,
             modifier = modifier
         )
     }

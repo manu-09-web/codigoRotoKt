@@ -16,6 +16,10 @@ val VerdeCorrectoFondo = Color(0xFFECFDF3)
 val RojoIncorrecto = Color(0xFFEF4444)
 val RojoIncorrectoFondo = Color(0xFFFEF2F2)
 
+// Tema a reforzar en Resultados
+val AmbarReforzar = Color(0xFFD97706)
+val AmbarReforzarFondo = Color(0xFFFFF7E6)
+
 // Tarjeta de código estilo editor
 val CodigoFondo = Color(0xFF1E1E2E)
 val CodigoTexto = Color(0xFFE4E4F0)

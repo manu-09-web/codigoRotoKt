@@ -9,7 +9,7 @@ import com.upchiapas.codigoroto.quiz.data.model.Tema
  *
  * sealed interface = lista CERRADA de fases: Kotlin sabe que no existe ninguna otra.
  * - La partida solo puede estar en UNA fase a la vez (con varios Boolean podrían quedar dos en true).
- * - En un `whn` el compilador avisa si falta manejar alguna fase.
+ * - En un `when` el compilador avisa si falta manejar alguna fase.
  *
  * data object vs data class:
  * - data object: la fase no necesita guardar datos, así que existe un solo objeto de ella.
@@ -46,6 +46,28 @@ data class ConfigPartida(
     val sliderHabilitado: Boolean get() = maximoDisponible > minimoPreguntas
 }
 
+/** Qué tan bien le fue en un tema. Lo decide el ViewModel; la pantalla lo traduce a un color. */
+enum class NivelAcierto { ALTO, MEDIO, BAJO }
+
+/** Resultado de un tema al terminar la partida (ej. Nulos: 3 de 4, 75%). */
+data class ResultadoTema(
+    val tema: Tema,
+    val aciertos: Int,
+    val total: Int,
+    val porcentaje: Int,
+    val nivel: NivelAcierto
+)
+
+/** Resumen de la partida que se muestra en la pantalla de Resultados. Lo calcula el ViewModel. */
+data class ResultadoPartida(
+    val puntaje: Int,
+    val aciertos: Int,
+    val total: Int,
+    val porcentaje: Int,
+    val porTema: List<ResultadoTema>,  // ordenados del mejor al peor
+    val temaMasDebil: Tema?            // null si le fue perfecto en todo
+)
+
 /**
  * Estado completo de la UI del quiz: la "foto" de todo lo que se ve en pantalla.
  *
@@ -61,7 +83,9 @@ data class QuizUiState(
     val opciones: List<OpcionUi> = emptyList(),       // opciones de la pregunta actual, ya revueltas
     val puntaje: Int = 0,
     val racha: Int = 0,                               // aciertos seguidos
-    val aciertos: Int = 0
+    val aciertos: Int = 0,
+    val respuestas: List<Boolean> = emptyList(),      // true/false por cada pregunta contestada, en orden
+    val resultado: ResultadoPartida? = null           // se llena al terminar la partida
 ) {
     val preguntaActual: Pregunta? get() = preguntas.getOrNull(indiceActual)
     val numeroPregunta: Int get() = indiceActual + 1  // para mostrar "Pregunta 1 de 10" (empieza en 1)

@@ -31,8 +31,17 @@
     <string name="juego_incorrecto">Incorrecto</string>
     <string name="juego_siguiente">Siguiente</string>
 
-    <!-- Fin de partida -->
-    <string name="fin_titulo">Partida terminada</string>
-    <string name="fin_resumen">%1$d de %2$d correctas · %3$d puntos</string>
-    <string name="fin_volver_inicio">Volver al inicio</string>
+    <!-- Resultados -->
+    <string name="resultados_titulo">¡Partida terminada!</string>
+    <string name="resultados_fraccion">%1$d/%2$d</string>
+    <string name="resultados_correctas">correctas</string>
+    <string name="resultados_puntos">%1$d puntos</string>
+    <string name="resultados_por_tema">Acierto por tema</string>
+    <string name="resultados_tema_detalle">%1$d de %2$d · %3$d%%</string>
+    <string name="resultados_reforzar">Refuerza: %1$s</string>
+    <string name="resultados_reforzar_detalle">Es el tema donde tuviste menos aciertos.</string>
+    <string name="resultados_perfecto">¡Perfecto!</string>
+    <string name="resultados_perfecto_detalle">Acertaste todas las preguntas de cada tema.</string>
+    <string name="resultados_inicio">Inicio</string>
+    <string name="resultados_jugar_de_nuevo">Jugar de nuevo</string>
 </resources>

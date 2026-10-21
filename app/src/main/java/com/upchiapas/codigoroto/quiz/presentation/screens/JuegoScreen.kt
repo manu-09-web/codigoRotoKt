@@ -40,14 +40,10 @@ fun JuegoScreen(
     uiState: QuizUiState,
     onOpcionSeleccionada: (String) -> Unit,
     onSiguiente: () -> Unit,
-    onVolverAlInicio: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val pregunta = uiState.preguntaActual
-    when {
-        uiState.fase == FaseQuiz.Finalizada -> FinDePartida(uiState, onVolverAlInicio, modifier)
-        pregunta != null -> PreguntaActual(uiState, pregunta, onOpcionSeleccionada, onSiguiente, modifier)
-    }
+    val pregunta = uiState.preguntaActual ?: return
+    PreguntaActual(uiState, pregunta, onOpcionSeleccionada, onSiguiente, modifier)
 }
 
 /** Muestra la pregunta actual: encabezado, progreso, código, opciones y la retroalimentación. */
@@ -151,35 +147,6 @@ private fun Retroalimentacion(
             Button(onClick = onSiguiente, modifier = Modifier.fillMaxWidth()) {
                 Text(text = stringResource(R.string.juego_siguiente))
             }
-        }
-    }
-}
-
-/** Resumen al terminar la partida (después será la pantalla de Resultados). */
-@Composable
-private fun FinDePartida(
-    uiState: QuizUiState,
-    onVolverAlInicio: () -> Unit,
-    modifier: Modifier
-) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = stringResource(R.string.fin_titulo),
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            text = stringResource(R.string.fin_resumen, uiState.aciertos, uiState.totalPreguntas, uiState.puntaje),
-            style = MaterialTheme.typography.titleMedium
-        )
-        Button(onClick = onVolverAlInicio) {
-            Text(text = stringResource(R.string.fin_volver_inicio))
         }
     }
 }

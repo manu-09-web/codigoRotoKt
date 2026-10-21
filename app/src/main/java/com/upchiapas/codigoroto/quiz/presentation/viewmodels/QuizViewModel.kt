@@ -9,8 +9,11 @@ import com.upchiapas.codigoroto.quiz.data.repository.QuizRepository
 import com.upchiapas.codigoroto.quiz.presentation.screens.ConfigPartida
 import com.upchiapas.codigoroto.quiz.presentation.screens.EstadoOpcion
 import com.upchiapas.codigoroto.quiz.presentation.screens.FaseQuiz
+import com.upchiapas.codigoroto.quiz.presentation.screens.NivelAcierto
 import com.upchiapas.codigoroto.quiz.presentation.screens.OpcionUi
 import com.upchiapas.codigoroto.quiz.presentation.screens.QuizUiState
+import com.upchiapas.codigoroto.quiz.presentation.screens.ResultadoPartida
+import com.upchiapas.codigoroto.quiz.presentation.screens.ResultadoTema
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -93,9 +96,17 @@ class QuizViewModel(
                 opciones = revolverOpciones(preguntas.first()),
                 puntaje = 0,
                 racha = 0,
-                aciertos = 0
+                aciertos = 0,
+                respuestas = emptyList(),
+                resultado = null
             )
         }
+    }
+
+    // Esta función se llama cuando el usuario toca "Jugar de nuevo" en Resultados:
+    // empieza otra partida con los mismos filtros (las preguntas se vuelven a revolver).
+    fun onJugarDeNuevo() {
+        onIniciarPartida()
     }
 
     // ---------- Juego ----------
@@ -121,7 +132,8 @@ class QuizViewModel(
                 opciones = marcarOpciones(it.opciones, pregunta.respuestaCorrecta, texto),
                 puntaje = it.puntaje + puntosGanados,
                 racha = nuevaRacha,
-                aciertos = if (esCorrecta) it.aciertos + 1 else it.aciertos
+                aciertos = if (esCorrecta) it.aciertos + 1 else it.aciertos,
+                respuestas = it.respuestas + esCorrecta   // se guarda para calcular el % por tema al final
             )
         }
     }
@@ -134,7 +146,8 @@ class QuizViewModel(
 
         val siguiente = estado.indiceActual + 1
         if (siguiente >= estado.totalPreguntas) {
-            _uiState.update { it.copy(fase = FaseQuiz.Finalizada) }
+            // Era la última: se calcula el resumen y se pasa a Resultados.
+            _uiState.update { it.copy(fase = FaseQuiz.Finalizada, resultado = calcularResultado(it)) }
             return
         }
         _uiState.update {
@@ -205,6 +218,47 @@ class QuizViewModel(
         opcion.copy(estado = estado)
     }
 
+    // Arma el resumen de la partida: % total, % por tema y el tema más débil.
+    private fun calcularResultado(estado: QuizUiState): ResultadoPartida {
+        // zip junta cada pregunta con su respuesta (true/false); groupBy las agrupa por tema.
+        val porTema = estado.preguntas.zip(estado.respuestas)
+            .groupBy({ (pregunta, _) -> pregunta.tema }, { (_, correcta) -> correcta })
+            .map { (tema, respuestas) ->
+                val aciertos = respuestas.count { it }
+                val porcentaje = porcentaje(aciertos, respuestas.size)
+                ResultadoTema(
+                    tema = tema,
+                    aciertos = aciertos,
+                    total = respuestas.size,
+                    porcentaje = porcentaje,
+                    nivel = nivelDe(porcentaje)
+                )
+            }
+            .sortedByDescending { it.porcentaje }
+
+        // El tema más débil es el de menor %, solo si no fue perfecto.
+        val masDebil = porTema.minByOrNull { it.porcentaje }?.takeIf { it.porcentaje < 100 }
+
+        return ResultadoPartida(
+            puntaje = estado.puntaje,
+            aciertos = estado.aciertos,
+            total = estado.totalPreguntas,
+            porcentaje = porcentaje(estado.aciertos, estado.totalPreguntas),
+            porTema = porTema,
+            temaMasDebil = masDebil?.tema
+        )
+    }
+
+    private fun porcentaje(aciertos: Int, total: Int): Int =
+        if (total == 0) 0 else aciertos * 100 / total
+
+    // Convierte el % en un nivel para que la pantalla solo elija el color.
+    private fun nivelDe(porcentaje: Int): NivelAcierto = when {
+        porcentaje >= NIVEL_ALTO -> NivelAcierto.ALTO
+        porcentaje >= NIVEL_MEDIO -> NivelAcierto.MEDIO
+        else -> NivelAcierto.BAJO
+    }
+
     // Calcula el multiplicador de puntos según la racha de respuestas correctas.
     private fun multiplicador(racha: Int): Double = when {
         racha >= RACHA_DOBLE -> 2.0
@@ -220,5 +274,7 @@ class QuizViewModel(
         const val MINIMO_PREGUNTAS = 5
         const val MAXIMO_PREGUNTAS = 20
         const val PREGUNTAS_POR_DEFECTO = 10
+        const val NIVEL_ALTO = 90          // 90% o más: verde
+        const val NIVEL_MEDIO = 70         // 70% a 89%: color principal; menos de 70%: ámbar
     }
 }
