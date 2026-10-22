@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.upchiapas.codigoroto.quiz.data.model.Partida
+import com.upchiapas.codigoroto.quiz.data.model.Pregunta
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -18,7 +19,7 @@ import java.io.IOException
 // Archivo de DataStore donde se guardan los datos del usuario.
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "codigo_roto_prefs")
 
-// Guarda y lee en el celular el historial de partidas y el récord.
+// Guarda y lee en el celular las preguntas del usuario, el historial y el récord.
 class QuizLocalDataSource(private val context: Context) {
 
     private val json = Json { ignoreUnknownKeys = true }
@@ -49,8 +50,30 @@ class QuizLocalDataSource(private val context: Context) {
         }
     }
 
+    // Preguntas que agregó el usuario.
+    val preguntasUsuario: Flow<List<Pregunta>> = preferencias.map { prefs ->
+        prefs[PREGUNTAS_USUARIO]?.let { texto -> json.decodeFromString<List<Pregunta>>(texto) } ?: emptyList()
+    }
+
+    // Agrega una pregunta nueva del usuario.
+    suspend fun guardarPregunta(pregunta: Pregunta) {
+        context.dataStore.edit { prefs ->
+            val actuales = prefs[PREGUNTAS_USUARIO]?.let { json.decodeFromString<List<Pregunta>>(it) } ?: emptyList()
+            prefs[PREGUNTAS_USUARIO] = json.encodeToString(actuales + pregunta)
+        }
+    }
+
+    // Borra una pregunta del usuario por su id.
+    suspend fun eliminarPregunta(id: String) {
+        context.dataStore.edit { prefs ->
+            val actuales = prefs[PREGUNTAS_USUARIO]?.let { json.decodeFromString<List<Pregunta>>(it) } ?: emptyList()
+            prefs[PREGUNTAS_USUARIO] = json.encodeToString(actuales.filterNot { it.id == id })
+        }
+    }
+
     // Nombres con los que se guarda cada dato.
     private companion object {
+        val PREGUNTAS_USUARIO = stringPreferencesKey("preguntas_usuario")
         val HISTORIAL = stringPreferencesKey("historial_partidas")
         val RECORD = intPreferencesKey("record_puntaje")
     }

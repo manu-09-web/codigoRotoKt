@@ -7,8 +7,17 @@ import kotlinx.coroutines.flow.Flow
 // Define qué datos se le pueden pedir al repositorio.
 interface QuizRepository {
 
-    // Todas las preguntas.
-    suspend fun obtenerPreguntas(): List<Pregunta>
+    // Todas las preguntas (las del JSON + las del usuario).
+    fun obtenerPreguntas(): Flow<List<Pregunta>>
+
+    // Solo las preguntas que agregó el usuario.
+    fun obtenerPreguntasUsuario(): Flow<List<Pregunta>>
+
+    // Guarda una pregunta nueva del usuario.
+    suspend fun agregarPregunta(pregunta: Pregunta)
+
+    // Borra una pregunta del usuario.
+    suspend fun eliminarPregunta(id: String)
 
     // Partidas guardadas.
     fun obtenerHistorial(): Flow<List<Partida>>

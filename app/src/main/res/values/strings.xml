@@ -1,6 +1,34 @@
 <resources>
     <string name="app_name">Código Roto</string>
 
+    <!-- Barra inferior -->
+    <string name="seccion_jugar">Jugar</string>
+    <string name="seccion_mis_preguntas">Mis preguntas</string>
+
+    <!-- Mis preguntas -->
+    <string name="mis_preguntas_titulo">Mis preguntas</string>
+    <string name="mis_preguntas_vacio">Aquí aparecerán las preguntas que agregues.</string>
+    <string name="mis_preguntas_cantidad">%1$d preguntas propias</string>
+    <string name="mis_preguntas_detalle">%1$s · %2$s</string>
+    <string name="mis_preguntas_eliminar">Eliminar</string>
+    <string name="mis_preguntas_nueva">+ Nueva pregunta</string>
+
+    <!-- Nueva pregunta -->
+    <string name="nueva_titulo">Nueva pregunta</string>
+    <string name="nueva_enunciado">Enunciado</string>
+    <string name="nueva_codigo">Código</string>
+    <string name="nueva_opciones">Opciones (marca la correcta)</string>
+    <string name="nueva_opcion">Opción %1$d</string>
+    <string name="nueva_tema">Tema</string>
+    <string name="nueva_explicacion">Explicación (opcional)</string>
+    <string name="nueva_cancelar">Cancelar</string>
+    <string name="nueva_guardar">Guardar</string>
+    <string name="error_campo_vacio">Este campo es obligatorio</string>
+    <string name="error_opciones_vacias">Llena las 4 opciones</string>
+    <string name="error_opciones_repetidas">Las opciones no se pueden repetir</string>
+    <string name="error_sin_correcta">Marca cuál es la respuesta correcta</string>
+    <string name="error_sin_tema">Elige un tema</string>
+
     <!-- Inicio -->
     <string name="inicio_subtitulo">Pon a prueba tus conocimientos de Kotlin</string>
     <string name="inicio_temas">Elige tus temas</string>

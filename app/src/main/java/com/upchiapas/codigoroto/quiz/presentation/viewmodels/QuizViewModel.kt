@@ -159,16 +159,20 @@ class QuizViewModel(
 
     // ---------- Lógica interna ----------
 
-    // Carga las preguntas y muestra Inicio.
+    // Escucha las preguntas (JSON + usuario) y muestra Inicio.
+    // Si el usuario agrega o borra una pregunta, el banco se actualiza solo.
     private fun cargarBanco() {
         viewModelScope.launch {
-            val banco = repository.obtenerPreguntas()
-            _uiState.update {
-                it.copy(
-                    fase = FaseQuiz.Configurando,
-                    bancoPreguntas = banco,
-                    config = recalcularConfig(banco, ConfigPartida(numeroPreguntas = PREGUNTAS_POR_DEFECTO))
-                )
+            repository.obtenerPreguntas().collect { banco ->
+                _uiState.update {
+                    val primeraVez = it.fase == FaseQuiz.Cargando
+                    val config = if (primeraVez) ConfigPartida(numeroPreguntas = PREGUNTAS_POR_DEFECTO) else it.config
+                    it.copy(
+                        fase = if (primeraVez) FaseQuiz.Configurando else it.fase,
+                        bancoPreguntas = banco,
+                        config = recalcularConfig(banco, config)
+                    )
+                }
             }
         }
     }
