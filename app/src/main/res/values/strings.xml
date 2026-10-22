@@ -8,7 +8,7 @@
     <!-- Mis preguntas -->
     <string name="mis_preguntas_titulo">Mis preguntas</string>
     <string name="mis_preguntas_vacio">Aquí aparecerán las preguntas que agregues.</string>
-    <string name="mis_preguntas_cantidad">%1$d preguntas propias</string>
+    <string name="mis_preguntas_cantidad">Preguntas propias: %1$d</string>
     <string name="mis_preguntas_detalle">%1$s · %2$s</string>
     <string name="mis_preguntas_eliminar">Eliminar</string>
     <string name="mis_preguntas_nueva">+ Nueva pregunta</string>
@@ -29,13 +29,23 @@
     <string name="error_sin_correcta">Marca cuál es la respuesta correcta</string>
     <string name="error_sin_tema">Elige un tema</string>
 
+    <!-- Símbolos de cada tema y marcas de respuesta -->
+    <string name="simbolo_variables" translatable="false">x=</string>
+    <string name="simbolo_nulos" translatable="false">\?.</string>
+    <string name="simbolo_colecciones" translatable="false">[]</string>
+    <string name="simbolo_control_flujo" translatable="false">if</string>
+    <string name="simbolo_funciones" translatable="false">fn</string>
+    <string name="marca_correcta" translatable="false">✓</string>
+    <string name="marca_incorrecta" translatable="false">✕</string>
+
     <!-- Inicio -->
+    <string name="inicio_saludo">¡Hola, dev!</string>
     <string name="inicio_subtitulo">Pon a prueba tus conocimientos de Kotlin</string>
     <string name="inicio_temas">Elige tus temas</string>
     <string name="inicio_todos">Todos</string>
     <string name="inicio_dificultad">Dificultad</string>
     <string name="inicio_preguntas">Preguntas</string>
-    <string name="inicio_disponibles">%1$d disponibles con estos filtros</string>
+    <string name="inicio_disponibles">Disponibles con estos filtros: %1$d</string>
     <string name="inicio_sin_preguntas">No hay preguntas con estos filtros</string>
     <string name="inicio_comenzar">Comenzar partida</string>
     <string name="inicio_record">Récord</string>
@@ -68,7 +78,7 @@
     <string name="resultados_nuevo_record">★ ¡Nuevo récord!</string>
     <string name="resultados_fraccion">%1$d/%2$d</string>
     <string name="resultados_correctas">correctas</string>
-    <string name="resultados_puntos">%1$d puntos</string>
+    <string name="resultados_puntos">Puntos: %1$d</string>
     <string name="resultados_por_tema">Acierto por tema</string>
     <string name="resultados_tema_detalle">%1$d de %2$d · %3$d%%</string>
     <string name="resultados_reforzar">Refuerza: %1$s</string>

@@ -15,6 +15,20 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import com.upchiapas.codigoroto.quiz.presentation.components.TemaIcono
+import com.upchiapas.codigoroto.quiz.presentation.components.color
+import com.upchiapas.codigoroto.ui.theme.AmbarReforzar
+import com.upchiapas.codigoroto.ui.theme.DegradadoFin
+import com.upchiapas.codigoroto.ui.theme.DegradadoInicio
+import com.upchiapas.codigoroto.ui.theme.VerdeCorrecto
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
@@ -47,22 +61,13 @@ fun InicioScreen(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        Column {
-            Text(
-                text = stringResource(R.string.app_name),
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = stringResource(R.string.inicio_subtitulo),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+        Encabezado()
 
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
         TarjetaEstadisticas(estadisticas)
 
         SelectorTemas(
@@ -84,12 +89,45 @@ fun InicioScreen(
         Button(
             onClick = onIniciarPartida,
             enabled = config.puedeIniciar,
+            shape = RoundedCornerShape(26.dp),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp)
         ) {
-            Text(text = stringResource(R.string.inicio_comenzar))
+            Text(text = stringResource(R.string.inicio_comenzar), fontWeight = FontWeight.SemiBold)
         }
+        }
+    }
+}
+
+// Encabezado con degradado morado, título y subtítulo.
+@Composable
+private fun Encabezado() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                Brush.linearGradient(listOf(DegradadoInicio, DegradadoFin)),
+                RoundedCornerShape(bottomStart = 28.dp, bottomEnd = 28.dp)
+            )
+            .padding(horizontal = 24.dp, vertical = 28.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.inicio_saludo),
+            style = MaterialTheme.typography.bodyLarge,
+            color = Color.White.copy(alpha = 0.85f)
+        )
+        Text(
+            text = stringResource(R.string.app_name),
+            style = MaterialTheme.typography.headlineLarge,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
+        )
+        Text(
+            text = stringResource(R.string.inicio_subtitulo),
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color.White.copy(alpha = 0.85f)
+        )
     }
 }
 
@@ -98,38 +136,45 @@ fun InicioScreen(
 private fun TarjetaEstadisticas(estadisticas: Estadisticas) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 16.dp),
+                .padding(vertical = 18.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            DatoEstadistica(estadisticas.record.toString(), R.string.inicio_record)
-            DatoEstadistica(estadisticas.partidasJugadas.toString(), R.string.inicio_partidas)
+            DatoEstadistica(estadisticas.record.toString(), R.string.inicio_record, AmbarReforzar)
+            DatoEstadistica(
+                estadisticas.partidasJugadas.toString(),
+                R.string.inicio_partidas,
+                MaterialTheme.colorScheme.primary
+            )
             DatoEstadistica(
                 stringResource(R.string.inicio_porcentaje, estadisticas.porcentajeAcierto),
-                R.string.inicio_acierto
+                R.string.inicio_acierto,
+                VerdeCorrecto
             )
         }
     }
 }
 
-// Un número con su etiqueta.
+// Un número de color con su etiqueta.
 @Composable
-private fun DatoEstadistica(valor: String, @StringRes etiqueta: Int) {
+private fun DatoEstadistica(valor: String, @StringRes etiqueta: Int, color: Color) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = valor,
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onPrimaryContainer
+            color = color
         )
         Text(
             text = stringResource(etiqueta),
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onPrimaryContainer
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -157,32 +202,41 @@ private fun SelectorTemas(
                 FilterChip(
                     selected = tema in seleccionados,
                     onClick = { onTemaSeleccionado(tema) },
-                    label = { Text(text = stringResource(tema.etiqueta())) }
+                    label = { Text(text = stringResource(tema.etiqueta())) },
+                    leadingIcon = { TemaIcono(tema = tema) },
+                    shape = RoundedCornerShape(50),
+                    // Al seleccionarlo se pinta con el color del tema.
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = tema.color().copy(alpha = 0.15f),
+                        selectedLabelColor = tema.color()
+                    )
                 )
             }
         }
     }
 }
 
-// Chips para elegir dificultad.
+// Botones segmentados para elegir dificultad (null = todas).
 @Composable
 private fun SelectorDificultad(
     seleccionada: Dificultad?,
     onDificultadSeleccionada: (Dificultad?) -> Unit
 ) {
+    val opciones: List<Dificultad?> = listOf(null) + Dificultad.entries
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         TituloSeccion(R.string.inicio_dificultad)
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(
-                selected = seleccionada == null,
-                onClick = { onDificultadSeleccionada(null) },
-                label = { Text(text = stringResource(R.string.dificultad_todas)) }
-            )
-            Dificultad.entries.forEach { dificultad ->
-                FilterChip(
+        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+            opciones.forEachIndexed { indice, dificultad ->
+                SegmentedButton(
                     selected = dificultad == seleccionada,
                     onClick = { onDificultadSeleccionada(dificultad) },
-                    label = { Text(text = stringResource(dificultad.etiqueta())) }
+                    shape = SegmentedButtonDefaults.itemShape(index = indice, count = opciones.size),
+                    label = {
+                        Text(
+                            text = stringResource(dificultad?.etiqueta() ?: R.string.dificultad_todas),
+                            maxLines = 1
+                        )
+                    }
                 )
             }
         }

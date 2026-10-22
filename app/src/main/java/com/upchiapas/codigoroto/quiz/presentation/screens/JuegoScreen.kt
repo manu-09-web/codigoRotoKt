@@ -12,7 +12,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,6 +24,13 @@ import com.upchiapas.codigoroto.R
 import com.upchiapas.codigoroto.quiz.data.model.Pregunta
 import com.upchiapas.codigoroto.quiz.presentation.components.CodigoCard
 import com.upchiapas.codigoroto.quiz.presentation.components.OpcionRespuesta
+import com.upchiapas.codigoroto.quiz.presentation.components.TemaIcono
+import com.upchiapas.codigoroto.quiz.presentation.components.color
+import com.upchiapas.codigoroto.quiz.presentation.components.etiqueta
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.RoundedCornerShape
 import com.upchiapas.codigoroto.ui.theme.RojoIncorrecto
 import com.upchiapas.codigoroto.ui.theme.RojoIncorrectoFondo
 import com.upchiapas.codigoroto.ui.theme.VerdeCorrecto
@@ -59,10 +65,8 @@ private fun PreguntaActual(
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         EncabezadoJuego(uiState)
-        LinearProgressIndicator(
-            progress = { uiState.progreso },
-            modifier = Modifier.fillMaxWidth()
-        )
+        ProgresoPorPregunta(uiState)
+        EtiquetaTema(pregunta)
         Text(
             text = pregunta.enunciado,
             style = MaterialTheme.typography.titleLarge,
@@ -70,9 +74,10 @@ private fun PreguntaActual(
         )
         CodigoCard(codigo = pregunta.codigo)
 
-        // Un botón por cada opción.
-        uiState.opciones.forEach { opcion ->
+        // Un botón por cada opción, con su letra A, B, C, D.
+        uiState.opciones.forEachIndexed { indice, opcion ->
             OpcionRespuesta(
+                letra = ('A' + indice).toString(),
                 texto = opcion.texto,
                 estado = opcion.estado,
                 onClick = { onOpcionSeleccionada(opcion.texto) }
@@ -90,6 +95,50 @@ private fun PreguntaActual(
                 )
             }
         }
+    }
+}
+
+// Una barrita por pregunta: verde si acertó, roja si falló, morada la actual, gris las que faltan.
+@Composable
+private fun ProgresoPorPregunta(uiState: QuizUiState) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        repeat(uiState.totalPreguntas) { indice ->
+            val color = when {
+                indice < uiState.respuestas.size ->
+                    if (uiState.respuestas[indice]) VerdeCorrecto else RojoIncorrecto
+                indice == uiState.indiceActual -> MaterialTheme.colorScheme.primary
+                else -> MaterialTheme.colorScheme.outlineVariant
+            }
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(6.dp)
+                    .background(color, RoundedCornerShape(3.dp))
+            )
+        }
+    }
+}
+
+// Tema (con su color) y dificultad de la pregunta.
+@Composable
+private fun EtiquetaTema(pregunta: Pregunta) {
+    Row(
+        modifier = Modifier
+            .background(pregunta.tema.color().copy(alpha = 0.12f), RoundedCornerShape(50))
+            .padding(horizontal = 10.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        TemaIcono(tema = pregunta.tema, tamano = 18.dp)
+        Text(
+            text = stringResource(
+                R.string.mis_preguntas_detalle,
+                stringResource(pregunta.tema.etiqueta()),
+                stringResource(pregunta.dificultad.etiqueta())
+            ),
+            style = MaterialTheme.typography.labelLarge,
+            color = pregunta.tema.color()
+        )
     }
 }
 
