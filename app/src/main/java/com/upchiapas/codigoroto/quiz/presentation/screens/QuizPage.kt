@@ -13,25 +13,16 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.upchiapas.codigoroto.CodigoRotoApp
 import com.upchiapas.codigoroto.quiz.presentation.viewmodels.QuizViewModel
 
-/**
- * Página del quiz (Composable con estado / stateful).
- * Conecta el QuizViewModel con las pantallas: lee el estado una sola vez y,
- * según la fase, muestra Inicio o Juego.
- *
- * Es el único lugar que conoce al ViewModel: las pantallas reciben datos y lambdas,
- * así se pueden reutilizar y probar sin ViewModel.
- */
+// Conecta el ViewModel con las pantallas y muestra la que toca según la fase.
 @Composable
 fun QuizPage(
     modifier: Modifier = Modifier,
-    // viewModel(): si el ViewModel ya existe (por ejemplo, después de girar la pantalla) lo reutiliza;
-    // si no, lo crea con la Factory que está en el QuizModule de CodigoRotoApp.
+    // Obtiene el ViewModel usando la Factory del QuizModule.
     viewModel: QuizViewModel = viewModel(
         factory = (LocalContext.current.applicationContext as CodigoRotoApp).quizModule.factoryQuiz
     )
 ) {
-    // collectAsStateWithLifecycle: escucha el StateFlow. Cada vez que el ViewModel emite un estado nuevo,
-    // uiState cambia y Compose vuelve a dibujar (recomposición). Deja de escuchar si la app está en segundo plano.
+    // Escucha el estado; cuando cambia, la pantalla se vuelve a dibujar.
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     when (uiState.fase) {
@@ -41,7 +32,7 @@ fun QuizPage(
 
         FaseQuiz.Configurando -> InicioScreen(
             config = uiState.config,
-            // viewModel::onTemaSeleccionado es una referencia a la función: se ejecuta cuando la pantalla la llame.
+            estadisticas = uiState.estadisticas,
             onTemaSeleccionado = viewModel::onTemaSeleccionado,
             onTodosLosTemas = viewModel::onTodosLosTemas,
             onDificultadSeleccionada = viewModel::onDificultadSeleccionada,
@@ -59,7 +50,6 @@ fun QuizPage(
             )
         }
 
-        // Respondiendo y Respondida se muestran en JuegoScreen.
         FaseQuiz.Respondiendo, is FaseQuiz.Respondida -> JuegoScreen(
             uiState = uiState,
             onOpcionSeleccionada = viewModel::onOpcionSeleccionada,

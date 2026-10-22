@@ -19,10 +19,7 @@ import com.upchiapas.codigoroto.quiz.presentation.screens.ResultadoTema
 import com.upchiapas.codigoroto.ui.theme.AmbarReforzar
 import com.upchiapas.codigoroto.ui.theme.VerdeCorrecto
 
-/**
- * Barra de progreso del % de aciertos de un tema (ej. "Nulos   3 de 4 · 75%").
- * Componente reutilizable y stateless: el color sale del NivelAcierto que calculó el ViewModel.
- */
+// Barra con el % de aciertos de un tema.
 @Composable
 fun BarraTema(
     resultado: ResultadoTema,

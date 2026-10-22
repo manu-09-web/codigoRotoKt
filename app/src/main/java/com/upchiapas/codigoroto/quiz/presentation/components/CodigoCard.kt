@@ -14,10 +14,7 @@ import androidx.compose.ui.unit.sp
 import com.upchiapas.codigoroto.ui.theme.CodigoFondo
 import com.upchiapas.codigoroto.ui.theme.CodigoTexto
 
-/**
- * Tarjeta oscura que muestra el código de la pregunta con letra monoespaciada (como un editor).
- * Componente reutilizable y stateless: solo recibe el texto del código.
- */
+// Tarjeta oscura que muestra el código de la pregunta.
 @Composable
 fun CodigoCard(
     codigo: String,

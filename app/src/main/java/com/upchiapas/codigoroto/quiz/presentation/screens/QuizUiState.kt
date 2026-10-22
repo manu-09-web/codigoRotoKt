@@ -4,52 +4,40 @@ import com.upchiapas.codigoroto.quiz.data.model.Dificultad
 import com.upchiapas.codigoroto.quiz.data.model.Pregunta
 import com.upchiapas.codigoroto.quiz.data.model.Tema
 
-/**
- * Fases por las que pasa una partida.
- *
- * sealed interface = lista CERRADA de fases: Kotlin sabe que no existe ninguna otra.
- * - La partida solo puede estar en UNA fase a la vez (con varios Boolean podrían quedar dos en true).
- * - En un `when` el compilador avisa si falta manejar alguna fase.
- *
- * data object vs data class:
- * - data object: la fase no necesita guardar datos, así que existe un solo objeto de ella.
- * - data class: la fase SÍ guarda datos (Respondida guarda qué opción se eligió y si fue correcta),
- *   y cada respuesta crea un objeto distinto.
- */
+// Fases de la partida (solo puede estar en una a la vez).
 sealed interface FaseQuiz {
-    data object Cargando : FaseQuiz      // leyendo el JSON
-    data object Configurando : FaseQuiz  // pantalla de Inicio, eligiendo filtros
-    data object Respondiendo : FaseQuiz  // pregunta en pantalla, esperando respuesta
-    data class Respondida(val elegida: String, val esCorrecta: Boolean) : FaseQuiz // ya respondió
-    data object Finalizada : FaseQuiz    // se acabaron las preguntas
+    data object Cargando : FaseQuiz      // cargando preguntas
+    data object Configurando : FaseQuiz  // en Inicio
+    data object Respondiendo : FaseQuiz  // esperando respuesta
+    data class Respondida(val elegida: String, val esCorrecta: Boolean) : FaseQuiz // ya respondió (guarda qué eligió)
+    data object Finalizada : FaseQuiz    // terminó la partida
 }
 
-/** Cómo se debe pintar cada opción. Lo decide el ViewModel; la pantalla solo lo dibuja. */
+// Cómo se pinta cada opción.
 enum class EstadoOpcion { NORMAL, CORRECTA, INCORRECTA, DESHABILITADA }
 
-/** Una opción de respuesta tal como se muestra en pantalla. */
+// Una opción con su estado.
 data class OpcionUi(
     val texto: String,
     val estado: EstadoOpcion = EstadoOpcion.NORMAL
 )
 
-/** Lo que el usuario eligió en la pantalla de Inicio. */
+// Filtros elegidos en Inicio.
 data class ConfigPartida(
-    val temasSeleccionados: Set<Tema> = emptySet(),   // vacío = todos los temas
-    val dificultad: Dificultad? = null,                // null = todas las dificultades
-    val numeroPreguntas: Int = 0,                      // valor del Slider
-    val minimoPreguntas: Int = 0,                      // inicio del Slider
-    val maximoDisponible: Int = 0                      // fin del Slider (preguntas que hay con estos filtros)
+    val temasSeleccionados: Set<Tema> = emptySet(),   // vacío = todos
+    val dificultad: Dificultad? = null,                // null = todas
+    val numeroPreguntas: Int = 0,                      // preguntas elegidas
+    val minimoPreguntas: Int = 0,                      // mínimo del Slider
+    val maximoDisponible: Int = 0                      // máximo del Slider
 ) {
-    // Propiedades calculadas: no se guardan, se calculan cada vez que se leen.
     val puedeIniciar: Boolean get() = maximoDisponible > 0
     val sliderHabilitado: Boolean get() = maximoDisponible > minimoPreguntas
 }
 
-/** Qué tan bien le fue en un tema. Lo decide el ViewModel; la pantalla lo traduce a un color. */
+// Qué tan bien le fue en un tema.
 enum class NivelAcierto { ALTO, MEDIO, BAJO }
 
-/** Resultado de un tema al terminar la partida (ej. Nulos: 3 de 4, 75%). */
+// Resultado de un tema.
 data class ResultadoTema(
     val tema: Tema,
     val aciertos: Int,
@@ -58,37 +46,41 @@ data class ResultadoTema(
     val nivel: NivelAcierto
 )
 
-/** Resumen de la partida que se muestra en la pantalla de Resultados. Lo calcula el ViewModel. */
+// Resumen de la partida para Resultados.
 data class ResultadoPartida(
     val puntaje: Int,
     val aciertos: Int,
     val total: Int,
     val porcentaje: Int,
-    val porTema: List<ResultadoTema>,  // ordenados del mejor al peor
-    val temaMasDebil: Tema?            // null si le fue perfecto en todo
+    val porTema: List<ResultadoTema>,  // del mejor al peor
+    val temaMasDebil: Tema?,           // null si fue perfecto
+    val esNuevoRecord: Boolean         // superó el récord
 )
 
-/**
- * Estado completo de la UI del quiz: la "foto" de todo lo que se ve en pantalla.
- *
- * Es inmutable (todo val). Para cambiarlo, el ViewModel crea una copia nueva con copy().
- * La pantalla nunca lo modifica, solo lo lee.
- */
+// Datos de la tarjeta de Inicio.
+data class Estadisticas(
+    val record: Int = 0,
+    val partidasJugadas: Int = 0,
+    val porcentajeAcierto: Int = 0     // % total de aciertos
+)
+
+// Todo lo que se muestra en pantalla. Solo el ViewModel lo cambia.
 data class QuizUiState(
     val fase: FaseQuiz = FaseQuiz.Cargando,
-    val bancoPreguntas: List<Pregunta> = emptyList(), // todas las preguntas del JSON
+    val bancoPreguntas: List<Pregunta> = emptyList(), // todas las preguntas
     val config: ConfigPartida = ConfigPartida(),
-    val preguntas: List<Pregunta> = emptyList(),      // las de la partida actual (ya filtradas y revueltas)
+    val preguntas: List<Pregunta> = emptyList(),      // preguntas de esta partida
     val indiceActual: Int = 0,
-    val opciones: List<OpcionUi> = emptyList(),       // opciones de la pregunta actual, ya revueltas
+    val opciones: List<OpcionUi> = emptyList(),       // opciones de la pregunta actual
     val puntaje: Int = 0,
     val racha: Int = 0,                               // aciertos seguidos
     val aciertos: Int = 0,
-    val respuestas: List<Boolean> = emptyList(),      // true/false por cada pregunta contestada, en orden
-    val resultado: ResultadoPartida? = null           // se llena al terminar la partida
+    val respuestas: List<Boolean> = emptyList(),      // si acertó cada pregunta
+    val resultado: ResultadoPartida? = null,          // resumen al terminar
+    val estadisticas: Estadisticas = Estadisticas()   // récord y partidas
 ) {
     val preguntaActual: Pregunta? get() = preguntas.getOrNull(indiceActual)
-    val numeroPregunta: Int get() = indiceActual + 1  // para mostrar "Pregunta 1 de 10" (empieza en 1)
+    val numeroPregunta: Int get() = indiceActual + 1  // empieza en 1
     val totalPreguntas: Int get() = preguntas.size
     val progreso: Float get() = if (preguntas.isEmpty()) 0f else numeroPregunta / totalPreguntas.toFloat()
 }

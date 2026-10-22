@@ -10,6 +10,10 @@
     <string name="inicio_disponibles">%1$d disponibles con estos filtros</string>
     <string name="inicio_sin_preguntas">No hay preguntas con estos filtros</string>
     <string name="inicio_comenzar">Comenzar partida</string>
+    <string name="inicio_record">Récord</string>
+    <string name="inicio_partidas">Partidas</string>
+    <string name="inicio_acierto">Acierto</string>
+    <string name="inicio_porcentaje">%1$d%%</string>
 
     <!-- Temas -->
     <string name="tema_variables">Variables</string>
@@ -33,6 +37,7 @@
 
     <!-- Resultados -->
     <string name="resultados_titulo">¡Partida terminada!</string>
+    <string name="resultados_nuevo_record">★ ¡Nuevo récord!</string>
     <string name="resultados_fraccion">%1$d/%2$d</string>
     <string name="resultados_correctas">correctas</string>
     <string name="resultados_puntos">%1$d puntos</string>

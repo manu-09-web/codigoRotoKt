@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
@@ -29,13 +31,11 @@ import com.upchiapas.codigoroto.quiz.data.model.Tema
 import com.upchiapas.codigoroto.quiz.presentation.components.etiqueta
 import kotlin.math.roundToInt
 
-/**
- * Pantalla de Inicio: el usuario elige temas, dificultad y número de preguntas.
- * Es stateless: recibe la configuración ya calculada por el ViewModel y avisa cada cambio con lambdas.
- */
+// Pantalla de Inicio: elegir temas, dificultad y número de preguntas.
 @Composable
 fun InicioScreen(
     config: ConfigPartida,
+    estadisticas: Estadisticas,
     onTemaSeleccionado: (Tema) -> Unit,
     onTodosLosTemas: () -> Unit,
     onDificultadSeleccionada: (Dificultad?) -> Unit,
@@ -62,6 +62,8 @@ fun InicioScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+
+        TarjetaEstadisticas(estadisticas)
 
         SelectorTemas(
             seleccionados = config.temasSeleccionados,
@@ -91,7 +93,48 @@ fun InicioScreen(
     }
 }
 
-/** Chips de temas (selección múltiple) y el botón "Todos". FlowRow acomoda los chips en varias filas. */
+// Tarjeta con récord, partidas y % de acierto.
+@Composable
+private fun TarjetaEstadisticas(estadisticas: Estadisticas) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            DatoEstadistica(estadisticas.record.toString(), R.string.inicio_record)
+            DatoEstadistica(estadisticas.partidasJugadas.toString(), R.string.inicio_partidas)
+            DatoEstadistica(
+                stringResource(R.string.inicio_porcentaje, estadisticas.porcentajeAcierto),
+                R.string.inicio_acierto
+            )
+        }
+    }
+}
+
+// Un número con su etiqueta.
+@Composable
+private fun DatoEstadistica(valor: String, @StringRes etiqueta: Int) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = valor,
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+        Text(
+            text = stringResource(etiqueta),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+    }
+}
+
+// Chips para elegir temas.
 @Composable
 private fun SelectorTemas(
     seleccionados: Set<Tema>,
@@ -110,7 +153,6 @@ private fun SelectorTemas(
             }
         }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            // Tema.entries es la lista de todos los valores del enum.
             Tema.entries.forEach { tema ->
                 FilterChip(
                     selected = tema in seleccionados,
@@ -122,7 +164,7 @@ private fun SelectorTemas(
     }
 }
 
-/** Chips de dificultad (selección única). "Todas" se representa con null. */
+// Chips para elegir dificultad.
 @Composable
 private fun SelectorDificultad(
     seleccionada: Dificultad?,
@@ -147,7 +189,7 @@ private fun SelectorDificultad(
     }
 }
 
-/** Slider para elegir cuántas preguntas jugar. Se oculta si solo hay una cantidad posible. */
+// Slider para elegir cuántas preguntas jugar.
 @Composable
 private fun SelectorNumeroPreguntas(
     config: ConfigPartida,
@@ -168,8 +210,6 @@ private fun SelectorNumeroPreguntas(
             )
         }
         if (config.sliderHabilitado) {
-            // El Slider trabaja con Float; se redondea a Int antes de avisar al ViewModel.
-            // steps = número de puntos intermedios, para que solo se pueda elegir números enteros.
             Slider(
                 value = config.numeroPreguntas.toFloat(),
                 onValueChange = { onNumeroPreguntasCambiado(it.roundToInt()) },
@@ -189,7 +229,7 @@ private fun SelectorNumeroPreguntas(
     }
 }
 
-/** Título de cada sección. @StringRes indica que recibe el id de un texto de strings.xml. */
+// Título de cada sección.
 @Composable
 private fun TituloSeccion(@StringRes textoRes: Int) {
     Text(

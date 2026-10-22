@@ -19,11 +19,7 @@ import com.upchiapas.codigoroto.ui.theme.RojoIncorrectoFondo
 import com.upchiapas.codigoroto.ui.theme.VerdeCorrecto
 import com.upchiapas.codigoroto.ui.theme.VerdeCorrectoFondo
 
-/**
- * Botón de una opción de respuesta. Componente reutilizable y stateless:
- * - recibe el texto y el estado (NORMAL, CORRECTA, INCORRECTA, DESHABILITADA) ya decidido por el ViewModel;
- * - avisa con onClick cuando lo tocan (state hoisting); no guarda nada por su cuenta.
- */
+// Botón de una opción; su color depende del estado.
 @Composable
 fun OpcionRespuesta(
     texto: String,
@@ -31,7 +27,7 @@ fun OpcionRespuesta(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Elige el color de fondo y del borde según el estado (Pair con "to", separado con val (a, b)).
+    // Colores según el estado.
     val (fondo, borde) = when (estado) {
         EstadoOpcion.CORRECTA -> VerdeCorrectoFondo to VerdeCorrecto
         EstadoOpcion.INCORRECTA -> RojoIncorrectoFondo to RojoIncorrecto
@@ -41,7 +37,7 @@ fun OpcionRespuesta(
 
     OutlinedCard(
         onClick = onClick,
-        enabled = estado == EstadoOpcion.NORMAL, // después de responder ya no se puede tocar
+        enabled = estado == EstadoOpcion.NORMAL, // solo se puede tocar antes de responder
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
         border = BorderStroke(if (resaltada) 2.dp else 1.dp, borde),

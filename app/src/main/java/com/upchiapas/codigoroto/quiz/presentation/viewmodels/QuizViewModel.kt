@@ -3,11 +3,13 @@ package com.upchiapas.codigoroto.quiz.presentation.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.upchiapas.codigoroto.quiz.data.model.Dificultad
+import com.upchiapas.codigoroto.quiz.data.model.Partida
 import com.upchiapas.codigoroto.quiz.data.model.Pregunta
 import com.upchiapas.codigoroto.quiz.data.model.Tema
 import com.upchiapas.codigoroto.quiz.data.repository.QuizRepository
 import com.upchiapas.codigoroto.quiz.presentation.screens.ConfigPartida
 import com.upchiapas.codigoroto.quiz.presentation.screens.EstadoOpcion
+import com.upchiapas.codigoroto.quiz.presentation.screens.Estadisticas
 import com.upchiapas.codigoroto.quiz.presentation.screens.FaseQuiz
 import com.upchiapas.codigoroto.quiz.presentation.screens.NivelAcierto
 import com.upchiapas.codigoroto.quiz.presentation.screens.OpcionUi
@@ -17,36 +19,29 @@ import com.upchiapas.codigoroto.quiz.presentation.screens.ResultadoTema
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-/**
- * El "cerebro" del quiz. Toda la lógica vive aquí: filtrar, revisar respuestas, sumar puntos.
- *
- * Recibe el repositorio por constructor (no lo crea él): inyección de dependencias.
- * Sobrevive a la rotación de pantalla, por eso la partida no se pierde al girar el celular.
- */
+// Lógica del quiz: filtrar, revisar respuestas, sumar puntos y guardar partidas.
 class QuizViewModel(
     private val repository: QuizRepository
 ) : ViewModel() {
 
-    // Backing property:
-    // - _uiState (privado y Mutable): solo el ViewModel lo puede cambiar.
-    // - uiState (público y de solo lectura): la pantalla lo lee pero no lo puede modificar.
+    // _uiState lo cambia el ViewModel; uiState solo lo lee la pantalla.
     private val _uiState = MutableStateFlow(QuizUiState())
     val uiState: StateFlow<QuizUiState> = _uiState.asStateFlow()
 
-    // init se ejecuta al crear el ViewModel: carga las preguntas en cuanto se abre la app.
+    // Al crearse: carga preguntas y estadísticas.
     init {
         cargarBanco()
+        observarEstadisticas()
     }
 
     // ---------- Inicio (fase Configurando) ----------
 
-    // Esta función se llama cuando el usuario selecciona un tema.
-    // Si el tema ya está seleccionado, se deselecciona.
+    // Marca o desmarca un tema.
     fun onTemaSeleccionado(tema: Tema) {
-        // update{} toma el estado actual (it) y lo reemplaza por la copia que regresamos.
         _uiState.update {
             val temas = it.config.temasSeleccionados
             val nuevos = if (tema in temas) temas - tema else temas + tema
@@ -54,22 +49,21 @@ class QuizViewModel(
         }
     }
 
-    // Esta función se llama cuando el usuario toca "Todos": quita la selección para usar todos los temas.
+    // Usa todos los temas.
     fun onTodosLosTemas() {
         _uiState.update {
             it.copy(config = recalcularConfig(it.bancoPreguntas, it.config.copy(temasSeleccionados = emptySet())))
         }
     }
 
-    // Esta función se llama cuando el usuario selecciona una dificultad (null = todas).
+    // Cambia la dificultad (null = todas).
     fun onDificultadSeleccionada(dificultad: Dificultad?) {
         _uiState.update {
             it.copy(config = recalcularConfig(it.bancoPreguntas, it.config.copy(dificultad = dificultad)))
         }
     }
 
-    // Esta función se llama cuando el usuario cambia el número de preguntas.
-    // coerceIn evita que el número quede fuera del rango permitido.
+    // Cambia cuántas preguntas jugar.
     fun onNumeroPreguntasCambiado(numero: Int) {
         _uiState.update {
             val config = it.config
@@ -77,17 +71,17 @@ class QuizViewModel(
         }
     }
 
-    // Esta función se llama cuando el usuario inicia el juego.
+    // Empieza la partida.
     fun onIniciarPartida() {
         val estado = _uiState.value
         if (!estado.config.puedeIniciar) return
 
-        // Filtra por temas y dificultad, revuelve y toma solo las que pidió el usuario.
+        // Filtra, revuelve y toma las que pidió.
         val preguntas = filtrar(estado.bancoPreguntas, estado.config)
             .shuffled()
             .take(estado.config.numeroPreguntas)
 
-        // Actualiza el estado con las preguntas seleccionadas y reinicia puntaje, racha y aciertos.
+        // Reinicia la partida.
         _uiState.update {
             it.copy(
                 fase = FaseQuiz.Respondiendo,
@@ -103,29 +97,28 @@ class QuizViewModel(
         }
     }
 
-    // Esta función se llama cuando el usuario toca "Jugar de nuevo" en Resultados:
-    // empieza otra partida con los mismos filtros (las preguntas se vuelven a revolver).
+    // Otra partida con los mismos filtros.
     fun onJugarDeNuevo() {
         onIniciarPartida()
     }
 
     // ---------- Juego ----------
 
-    // Esta función se llama cuando el usuario selecciona una opción de respuesta.
+    // Revisa la respuesta y suma puntos.
     fun onOpcionSeleccionada(texto: String) {
         val estado = _uiState.value
-        val pregunta = estado.preguntaActual ?: return       // ?: return -> si no hay pregunta, no hace nada
-        if (estado.fase != FaseQuiz.Respondiendo) return     // evita contestar dos veces la misma pregunta
+        val pregunta = estado.preguntaActual ?: return       // si no hay pregunta, no hace nada
+        if (estado.fase != FaseQuiz.Respondiendo) return     // no deja contestar dos veces
 
         val esCorrecta = texto == pregunta.respuestaCorrecta
-        val nuevaRacha = if (esCorrecta) estado.racha + 1 else 0 // un error reinicia la racha
+        val nuevaRacha = if (esCorrecta) estado.racha + 1 else 0 // si falla, la racha vuelve a 0
         val puntosGanados = if (esCorrecta) {
             (pregunta.dificultad.puntos * multiplicador(nuevaRacha)).toInt()
         } else {
             0
         }
 
-        // Se crea un estado NUEVO; la pantalla lo recibe y se vuelve a dibujar con los colores.
+        // Nuevo estado con la respuesta marcada.
         _uiState.update {
             it.copy(
                 fase = FaseQuiz.Respondida(elegida = texto, esCorrecta = esCorrecta),
@@ -133,21 +126,21 @@ class QuizViewModel(
                 puntaje = it.puntaje + puntosGanados,
                 racha = nuevaRacha,
                 aciertos = if (esCorrecta) it.aciertos + 1 else it.aciertos,
-                respuestas = it.respuestas + esCorrecta   // se guarda para calcular el % por tema al final
+                respuestas = it.respuestas + esCorrecta   // para el % por tema
             )
         }
     }
 
-    // Esta función se llama cuando el usuario toca "Siguiente":
-    // pasa a la siguiente pregunta o, si era la última, termina la partida.
+    // Siguiente pregunta o termina la partida.
     fun onSiguiente() {
         val estado = _uiState.value
         if (estado.fase !is FaseQuiz.Respondida) return
 
         val siguiente = estado.indiceActual + 1
         if (siguiente >= estado.totalPreguntas) {
-            // Era la última: se calcula el resumen y se pasa a Resultados.
+            // Era la última: muestra Resultados y guarda la partida.
             _uiState.update { it.copy(fase = FaseQuiz.Finalizada, resultado = calcularResultado(it)) }
+            guardarPartida(estado)
             return
         }
         _uiState.update {
@@ -159,15 +152,14 @@ class QuizViewModel(
         }
     }
 
-    // Regresa a la pantalla de Inicio conservando los filtros que había elegido.
+    // Regresa a Inicio.
     fun onVolverAlInicio() {
         _uiState.update { it.copy(fase = FaseQuiz.Configurando) }
     }
 
-    // ---------- Lógica interna (private: solo se usa dentro del ViewModel) ----------
+    // ---------- Lógica interna ----------
 
-    // Pide las preguntas al repositorio y pasa a la pantalla de Inicio.
-    // viewModelScope.launch inicia una corrutina que se cancela sola si el ViewModel se destruye.
+    // Carga las preguntas y muestra Inicio.
     private fun cargarBanco() {
         viewModelScope.launch {
             val banco = repository.obtenerPreguntas()
@@ -181,7 +173,7 @@ class QuizViewModel(
         }
     }
 
-    // Ajusta el mínimo, el máximo y el número elegido según los filtros actuales.
+    // Ajusta el rango del Slider según los filtros.
     private fun recalcularConfig(banco: List<Pregunta>, config: ConfigPartida): ConfigPartida {
         val disponibles = filtrar(banco, config).size
         val maximo = minOf(disponibles, MAXIMO_PREGUNTAS)
@@ -193,18 +185,18 @@ class QuizViewModel(
         )
     }
 
-    // Filtra las preguntas según los temas y dificultad seleccionados (vacío o null = no filtrar).
+    // Filtra por tema y dificultad.
     private fun filtrar(banco: List<Pregunta>, config: ConfigPartida): List<Pregunta> =
         banco.filter { pregunta ->
             (config.temasSeleccionados.isEmpty() || pregunta.tema in config.temasSeleccionados) &&
                 (config.dificultad == null || pregunta.dificultad == config.dificultad)
         }
 
-    // Reordena las opciones de una pregunta en un orden aleatorio.
+    // Revuelve las opciones.
     private fun revolverOpciones(pregunta: Pregunta): List<OpcionUi> =
         pregunta.opciones.shuffled().map { OpcionUi(texto = it) }
 
-    // Marca las opciones de respuesta según si están correctas, incorrectas o deshabilitadas.
+    // Marca cuál es correcta, incorrecta o deshabilitada.
     private fun marcarOpciones(
         opciones: List<OpcionUi>,
         correcta: String,
@@ -218,9 +210,9 @@ class QuizViewModel(
         opcion.copy(estado = estado)
     }
 
-    // Arma el resumen de la partida: % total, % por tema y el tema más débil.
+    // Calcula el resumen: % total, % por tema y tema más débil.
     private fun calcularResultado(estado: QuizUiState): ResultadoPartida {
-        // zip junta cada pregunta con su respuesta (true/false); groupBy las agrupa por tema.
+        // Junta cada pregunta con su respuesta y agrupa por tema.
         val porTema = estado.preguntas.zip(estado.respuestas)
             .groupBy({ (pregunta, _) -> pregunta.tema }, { (_, correcta) -> correcta })
             .map { (tema, respuestas) ->
@@ -236,7 +228,7 @@ class QuizViewModel(
             }
             .sortedByDescending { it.porcentaje }
 
-        // El tema más débil es el de menor %, solo si no fue perfecto.
+        // Tema con menor %, si no fue perfecto.
         val masDebil = porTema.minByOrNull { it.porcentaje }?.takeIf { it.porcentaje < 100 }
 
         return ResultadoPartida(
@@ -245,36 +237,68 @@ class QuizViewModel(
             total = estado.totalPreguntas,
             porcentaje = porcentaje(estado.aciertos, estado.totalPreguntas),
             porTema = porTema,
-            temaMasDebil = masDebil?.tema
+            temaMasDebil = masDebil?.tema,
+            esNuevoRecord = estado.puntaje > estado.estadisticas.record
         )
+    }
+
+    // ---------- Persistencia (DataStore) ----------
+
+    // Escucha historial y récord y actualiza las estadísticas.
+    private fun observarEstadisticas() {
+        viewModelScope.launch {
+            combine(repository.obtenerHistorial(), repository.obtenerRecord()) { historial, record ->
+                val totalPreguntas = historial.sumOf { it.totalPreguntas }
+                val totalAciertos = historial.sumOf { it.aciertos }
+                Estadisticas(
+                    record = record,
+                    partidasJugadas = historial.size,
+                    porcentajeAcierto = porcentaje(totalAciertos, totalPreguntas)
+                )
+            }.collect { estadisticas ->
+                _uiState.update { it.copy(estadisticas = estadisticas) }
+            }
+        }
+    }
+
+    // Guarda la partida en DataStore.
+    private fun guardarPartida(estado: QuizUiState) {
+        val partida = Partida(
+            fecha = System.currentTimeMillis(),
+            puntaje = estado.puntaje,
+            aciertos = estado.aciertos,
+            totalPreguntas = estado.totalPreguntas
+        )
+        viewModelScope.launch {
+            repository.guardarPartida(partida)
+        }
     }
 
     private fun porcentaje(aciertos: Int, total: Int): Int =
         if (total == 0) 0 else aciertos * 100 / total
 
-    // Convierte el % en un nivel para que la pantalla solo elija el color.
+    // % -> nivel (alto, medio, bajo).
     private fun nivelDe(porcentaje: Int): NivelAcierto = when {
         porcentaje >= NIVEL_ALTO -> NivelAcierto.ALTO
         porcentaje >= NIVEL_MEDIO -> NivelAcierto.MEDIO
         else -> NivelAcierto.BAJO
     }
 
-    // Calcula el multiplicador de puntos según la racha de respuestas correctas.
+    // Multiplicador de puntos según la racha.
     private fun multiplicador(racha: Int): Double = when {
         racha >= RACHA_DOBLE -> 2.0
         racha >= RACHA_MEDIA -> 1.5
         else -> 1.0
     }
 
-    // companion object: cosas de la CLASE, no de cada objeto (como "static" en Java).
-    // Aquí van las constantes del juego. La Factory está en QuizViewModelFactory.kt.
+    // Constantes del juego.
     private companion object {
-        const val RACHA_MEDIA = 3          // desde 3 aciertos seguidos: x1.5
-        const val RACHA_DOBLE = 5          // desde 5 aciertos seguidos: x2
+        const val RACHA_MEDIA = 3          // x1.5 desde 3 seguidos
+        const val RACHA_DOBLE = 5          // x2 desde 5 seguidos
         const val MINIMO_PREGUNTAS = 5
         const val MAXIMO_PREGUNTAS = 20
         const val PREGUNTAS_POR_DEFECTO = 10
-        const val NIVEL_ALTO = 90          // 90% o más: verde
-        const val NIVEL_MEDIO = 70         // 70% a 89%: color principal; menos de 70%: ámbar
+        const val NIVEL_ALTO = 90          // 90% o más
+        const val NIVEL_MEDIO = 70         // 70% a 89%
     }
 }

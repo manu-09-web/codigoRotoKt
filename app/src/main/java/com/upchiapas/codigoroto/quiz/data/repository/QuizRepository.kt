@@ -1,15 +1,21 @@
 package com.upchiapas.codigoroto.quiz.data.repository
 
+import com.upchiapas.codigoroto.quiz.data.model.Partida
 import com.upchiapas.codigoroto.quiz.data.model.Pregunta
+import kotlinx.coroutines.flow.Flow
 
-/**
- * Contrato del repositorio del quiz: dice QUÉ datos se pueden pedir, no CÓMO se obtienen.
- *
- * El ViewModel depende de esta interface y no de la implementación. Así, si cambia la forma
- * de obtener los datos (JSON, DataStore, una versión falsa para pruebas), el ViewModel no cambia.
- */
+// Define qué datos se le pueden pedir al repositorio.
 interface QuizRepository {
 
-    /** Regresa todas las preguntas disponibles. */
+    // Todas las preguntas.
     suspend fun obtenerPreguntas(): List<Pregunta>
+
+    // Partidas guardadas.
+    fun obtenerHistorial(): Flow<List<Partida>>
+
+    // Mejor puntaje.
+    fun obtenerRecord(): Flow<Int>
+
+    // Guarda una partida terminada.
+    suspend fun guardarPartida(partida: Partida)
 }

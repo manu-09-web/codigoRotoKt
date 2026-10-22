@@ -33,10 +33,7 @@ import com.upchiapas.codigoroto.ui.theme.AmbarReforzarFondo
 import com.upchiapas.codigoroto.ui.theme.VerdeCorrecto
 import com.upchiapas.codigoroto.ui.theme.VerdeCorrectoFondo
 
-/**
- * Pantalla de Resultados (fase Finalizada).
- * Stateless: recibe el ResultadoPartida ya calculado por el ViewModel y avisa con lambdas.
- */
+// Pantalla de Resultados al terminar la partida.
 @Composable
 fun ResultadosScreen(
     resultado: ResultadoPartida,
@@ -57,6 +54,19 @@ fun ResultadosScreen(
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold
         )
+
+        // Solo si hizo nuevo récord.
+        if (resultado.esNuevoRecord) {
+            Card(colors = CardDefaults.cardColors(containerColor = AmbarReforzarFondo)) {
+                Text(
+                    text = stringResource(R.string.resultados_nuevo_record),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = AmbarReforzar
+                )
+            }
+        }
 
         AnilloAciertos(resultado)
 
@@ -95,11 +105,11 @@ fun ResultadosScreen(
     }
 }
 
-/** Anillo con el % de aciertos y "8/10" en el centro. */
+// Anillo con el % de aciertos.
 @Composable
 private fun AnilloAciertos(resultado: ResultadoPartida) {
     Box(contentAlignment = Alignment.Center) {
-        // Pista gris de fondo y, encima, el progreso real.
+        // Fondo gris y encima el progreso.
         CircularProgressIndicator(
             progress = { 1f },
             modifier = Modifier.size(150.dp),
@@ -126,7 +136,7 @@ private fun AnilloAciertos(resultado: ResultadoPartida) {
     }
 }
 
-/** Tarjeta con una BarraTema por cada tema que salió en la partida. */
+// Una barra por cada tema.
 @Composable
 private fun AciertoPorTema(porTema: List<ResultadoTema>) {
     Card(
@@ -147,7 +157,7 @@ private fun AciertoPorTema(porTema: List<ResultadoTema>) {
     }
 }
 
-/** Tarjeta ámbar con el tema a reforzar, o verde si le fue perfecto en todos. */
+// Tema a reforzar o "¡Perfecto!".
 @Composable
 private fun TemaAReforzar(temaMasDebil: Tema?) {
     val perfecto = temaMasDebil == null

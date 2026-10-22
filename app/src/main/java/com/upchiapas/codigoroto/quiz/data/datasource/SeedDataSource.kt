@@ -6,32 +6,21 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 
-/**
- * Fuente de datos semilla (las preguntas base que vienen con la app).
- *
- * En esta clase se llama al archivo JSON, se leen los datos y se convierten a objetos de la clase Pregunta.
- * Recibe el Context porque solo con él Android deja abrir la carpeta assets.
- * Solo la usa el QuizRepository; las pantallas no saben que existe.
- */
+// Lee las preguntas base del archivo preguntas.json.
 class SeedDataSource(private val context: Context) {
 
-    // Convertidor de JSON. ignoreUnknownKeys = true: si el JSON trae un campo extra, lo ignora en vez de fallar.
+    // Convierte JSON a objetos; ignora campos que no conoce.
     private val json = Json { ignoreUnknownKeys = true }
 
-    /**
-     * Lee preguntas.json y regresa la lista de preguntas.
-     *
-     * suspend indica que la función puede esperar sin congelar la app.
-     * withContext(Dispatchers.IO) manda el trabajo a un hilo de fondo especial para leer archivos.
-     */
+    // Lee el archivo en segundo plano y regresa la lista de preguntas.
     suspend fun cargarPreguntas(): List<Pregunta> = withContext(Dispatchers.IO) {
-        val texto = context.assets.open(ARCHIVO_PREGUNTAS) // 1. abre el archivo de la carpeta assets
-            .bufferedReader()                               // 2. lo prepara para leerlo como texto
-            .use { it.readText() }                          // 3. lo lee completo; use{} lo cierra al terminar
-        json.decodeFromString<List<Pregunta>>(texto)        // 4. convierte el texto JSON en List<Pregunta>
+        val texto = context.assets.open(ARCHIVO_PREGUNTAS) // abre el archivo
+            .bufferedReader()                               // lo prepara para leer texto
+            .use { it.readText() }                          // lo lee y lo cierra
+        json.decodeFromString<List<Pregunta>>(texto)        // texto JSON -> lista de preguntas
     }
 
-    // companion object: cosas de la clase (no de cada objeto). Aquí, el nombre del archivo como constante.
+    // Nombre del archivo.
     private companion object {
         const val ARCHIVO_PREGUNTAS = "preguntas.json"
     }
